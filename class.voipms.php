@@ -1,4 +1,5 @@
 <?
+require_once('nusoap/nusoap.php');
 class VoIPms{
 
     /*******************************************\
@@ -14,20 +15,14 @@ class VoIPms{
     \*******************************************/
     var $soap_client;
     function soapClient(){
-        $this->soap_client = new SoapClient(null, array(
-                'location'      => "https://voip.ms/api/v1/server.php",
-                'uri'           => "urn://voip.ms",
-                'soap_version'  => SOAP_1_2,
-                'trace'         => 1
-            )
-        );
+        $this->soap_client = new nusoap_client("https://voip.ms/api/v1/server.php");
     }
 
     function soapCall($function, $params){
         if(!$this->soap_client){$this->soapClient();}
-        try { return $this->soap_client->__soapCall($function, $params);}
-        catch (SoapFault $e) { trigger_error("SOAP Fault: [{$e->faultcode}] {$e->faultstring}", E_USER_ERROR); }
+        return $this->soap_client->call($function, $params);
     }
+
 
 
 
@@ -210,7 +205,7 @@ class VoIPms{
 
     function createVoicemail(
         $digits, $name, $password, $skip_password, $email, $attach_message, $delete_message,
-        $say_time, $timezone, $say_callerid, $play_instructions, $language, $email_attachment_format="",$unavailable_message_recording=""
+        $say_time, $timezone, $say_callerid, $play_instructions, $language, $email_attachment_format=""
     ){
         $function = "createVoicemail";
         $params = array(
@@ -229,8 +224,7 @@ class VoIPms{
                 "say_callerid"      => $say_callerid,
                 "play_instructions" => $play_instructions,
                 "language"          => $language,
-                "email_attachment_format" => $email_attachment_format,
-                "unavailable_message_recording"=>$unavailable_message_recording
+                "email_attachment_format" => $email_attachment_format
             )
         );
         return $this->soapCall($function,$params);
@@ -248,74 +242,13 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function delCallHunting($callhunting){
-        $function = "delCallHunting";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "callhunting"   => $callhunting
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function delCallRecording($callrecording,$subaccount){
-        $function = "delCallRecording";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "callrecording"     => $callrecording,
-                "subaccount"     => $subaccount
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function delCallerIDFiltering($callhunting){
+    function delCallerIDFiltering($filtering){
         $function = "delCallerIDFiltering";
         $params = array(
             "params" => array(
                 "api_username"  => $this->api_username,
                 "api_password"  => $this->api_password,
-                "filtering"   => $callhunting
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-
-    function delConference($conference){
-        $function = "delConference";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "conference"    => $conference
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-    function delConferenceMember($member){
-        $function = "delConferenceMember";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "member"        => $member
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-    function delMemberFromConference($member,$conference){
-        $function = "delMemberFromConference";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "member"        => $member,
-                "conference"    => $conference
+                "filtering"     => $filtering
             )
         );
         return $this->soapCall($function,$params);
@@ -369,15 +302,13 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function delMessages($mailbox,$folder,$message_num){
+    function delMessages($mailbox){
         $function = "delMessages";
         $params = array(
             "params" => array(
                 "api_username"  => $this->api_username,
                 "api_password"  => $this->api_password,
-                "mailbox"       => $mailbox,
-                "folder"        => $folder,
-                "message_num"   => $message_num
+                "mailbox"       => $mailbox
             )
         );
         return $this->soapCall($function,$params);
@@ -612,18 +543,6 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function getCallHuntings($callhunting=''){
-        $function = "getCallHuntings";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "callhunting"     => $callhunting
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
     function getCallTypes($client){
         $function = "getCallTypes";
         $params = array(
@@ -732,56 +651,6 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function getConference($conference=''){
-        $function = "getConference";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "conference"       => $conference
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-
-    function getConferenceMembers($member){
-        $function = "getConferenceMembers";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "member"        => $member
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getConferenceRecordings($conference) {
-        $function = "getConferenceRecordings";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "conference"    => $conference
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getConferenceRecordingFiles($conference, $recording) {
-        $function = "getConferenceRecordingFiles";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "conference"    => $conference,
-                "recording"    => $recording
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
     function getDeposits($client){
         $function = "getDeposits";
         $params = array(
@@ -840,35 +709,6 @@ class VoIPms{
                 "api_password"  => $this->api_password,
                 "client"        => $client,
                 "did"           => $did
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getCallRecording($callrecording,$subaccount){
-        $function = "getCallRecording";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "callrecording"     => $callrecording,
-                "subaccount"     => $subaccount
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getCallRecordings($callrecording,$subaccount,$start,$lengt,$datefrom,$dateto){
-        $function = "getCallRecordings";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "subaccount"     => $subaccount,
-                "start"     => $start,
-                "lengt"     => $lengt,
-                "datefrom"     => $datefrom,
-                "dateto"     => $dateto
             )
         );
         return $this->soapCall($function,$params);
@@ -1048,7 +888,7 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function getLanguages($language=''){
+    function getLanguages($language){
         $function = "getLanguages";
         $params = array(
             "params" => array(
@@ -1514,48 +1354,6 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function getVoicemailFolders($folder=''){
-        $function = "getVoicemailFolders";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "folder"       => $folder
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getVoicemailMessages($mailbox,$folder,$date_from="",$date_to=""){
-        $function = "getVoicemailMessages";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "mailbox"       => $mailbox,
-                "folder"        => $folder,
-                "date_from"     => $date_from,
-                "date_to"       => $date_to
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function getVoicemailMessageFile($mailbox,$folder,$message_num){
-        $function = "getVoicemailMessageFile";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "mailbox"       => $mailbox,
-                "folder"        => $folder,
-                "message_num"    => $message_num
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-
     function getVoicemailSetups($voicemailsetup){
         $function = "getVoicemailSetups";
         $params = array(
@@ -1823,7 +1621,7 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function sendSMS($did,$dst,$message) {
+    function sendSMS($did,$dst,$message){
         $function = "sendSMS";
         $params = array(
             "params" => array(
@@ -1837,7 +1635,7 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-         function sendMMS($did,$dst,$message='',$media1='',$media2='',$media3=''){
+    function sendMMS($did,$dst,$message='',$media1='',$media2='',$media3=''){
         $function = "sendMMS";
         $params = array(
             "params" => array(
@@ -1849,37 +1647,6 @@ class VoIPms{
                 "media1"            => $media1,
                 "media2"            => $media2,
                 "media3"            => $media3
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function sendCallRecordingEmail($callrecording,$subaccount,$email)
-    {
-        $function = "sendCallRecordingEmail";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "callrecording"     => $callrecording,
-                "subaccount"     => $subaccount,
-                "emailAddress"     => $emailAddress
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-
-     function sendVoicemailEmail($mailbox,$folder,$message_num,$email_address){
-        $function = "sendVoicemailEmail";
-        $params = array(
-            "params" => array(
-                "api_username"  => $this->api_username,
-                "api_password"  => $this->api_password,
-                "mailbox"       => $mailbox,
-                "folder"        => $folder,
-                "message_num"   => $message_num,
-                "email_address" => $email_address
             )
         );
         return $this->soapCall($function,$params);
@@ -1923,26 +1690,6 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
-    function setCallhunting($callhunting,$description,$music,$recording,$language,$col_order,$members,$ring_time,$col_press){
-        $function = "setCallhunting";
-        $params = array(
-            "params" => array(
-                "api_username"    => $this->api_username,
-                "api_password"    => $this->api_password,
-                "callhunting"     => $callhunting,
-                "description"     => $description,
-                "music"           => $music,
-                "recording"       => $recording,
-                "language"        => $language,
-                "col_order"       => $col_order,
-                "members"         => $members,
-                "ring_time"       => $ring_time,
-                "col_press"       => $col_press,
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
     function setClient(
         $client, $email, $password, $company, $firstname, $lastname, $address,
         $city, $state, $country, $zip, $phone_number, $balance_management
@@ -1980,129 +1727,6 @@ class VoIPms{
                 "client"                => $client,
                 "email"                 => $email,
                 "threshold"             => $threshold
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function setConference(
-
-
-        $conference='',
-        $name='',
-        $description='',
-        $members='',
-        $max_members='',
-        $sound_join='',
-        $sound_leave='',
-        $sound_has_joined='',
-        $sound_has_left='',
-        $sound_kicked='',
-        $sound_muted='',
-        $sound_unmuted='',
-        $sound_only_person='',
-        $sound_only_one='',
-        $sound_there_are='',
-        $sound_other_in_party='',
-        $sound_place_into_conference='',
-        $sound_get_pin='',
-        $sound_invalid_pin='',
-        $sound_locked='',
-        $sound_locked_now='',
-        $sound_unlocked_now='',
-        $sound_error_menu='',
-        $sound_participants_muted='',
-        $sound_participants_unmuted='',
-        $language='en'
-
-
-    )
-    {
-        $function = "setConference";
-        $params = array(
-            "params" => array(
-                "api_username"          => $this->api_username,
-                "api_password"          => $this->api_password,
-                "conference"            => $conference,
-                "name"                  => $name,
-                "description"           => $description,
-                "members"               => $members,
-                "max_members"           => $max_members,
-                "sound_join"            => $sound_join,
-                "sound_leave"           => $sound_leave,
-                "sound_has_joined"      => $sound_has_joined,
-                "sound_has_left"        => $sound_has_left,
-                "sound_kicked"          => $sound_kicked,
-                "sound_muted"           => $sound_muted,
-                "sound_unmuted"         => $sound_unmuted,
-                "sound_only_person"     => $sound_only_person,
-                "sound_only_one"        => $sound_only_one,
-                "sound_there_are"       => $sound_there_are,
-                "sound_other_in_party"         => $sound_other_in_party,
-                "sound_place_into_conference"  => $sound_place_into_conference,
-                "sound_get_pin"         => $sound_get_pin,
-                "sound_invalid_pin"     => $sound_invalid_pin,
-                "sound_locked"          => $sound_locked,
-                "sound_locked_now"      => $sound_locked_now,
-                "sound_unlocked_now"    => $sound_unlocked_now,
-                "sound_error_menu"      => $sound_error_menu,
-                "sound_participants_muted"     => $sound_participants_muted,
-                "sound_participants_unmuted"   => $sound_participants_unmuted,
-                "language"          => $language
-
-            )
-        );
-        return $this->soapCall($function,$params);
-    }
-
-    function setConferenceMember(
-
-        $member='',
-        $conference='',
-        $name='',
-        $description='',
-        $pin='',
-        $announce_join_leave='',
-        $admin='',
-        $start_muted='',
-        $announce_user_count='',
-        $announce_only_user='',
-        $moh_when_empty='',
-        $quiet='',
-        $announcement='',
-        $drop_silence='',
-        $talking_threshold='',
-        $silence_threshold='',
-        $talk_detection='',
-        $jitter_buffer=''
-
-    )
-    {
-        $function = "setConferenceMember";
-        $params = array(
-            "params" => array(
-                "api_username"          => $this->api_username,
-                "api_password"          => $this->api_password,
-                "member"                => $member,
-                "conference"            => $conference,
-                "name"                  => $name,
-                "description"           => $description,
-                "pin"                   => $pin,
-                "announce_join_leave"   => $announce_join_leave,
-                "admin"                 => $admin,
-                "start_muted"           => $start_muted,
-                "announce_user_count"   => $announce_user_count,
-                "announce_only_user"    => $announce_only_user,
-                "moh_when_empty"        => $moh_when_empty,
-                "quiet"                 => $quiet,
-                "announcement"          => $announcement,
-                "drop_silence"          => $drop_silence,
-                "talking_threshold"     => $talking_threshold,
-                "silence_threshold"     => $silence_threshold,
-                "talk_detection"        => $talk_detection,
-                "jitter_buffer"         => $jitter_buffer
-
-
             )
         );
         return $this->soapCall($function,$params);
@@ -2399,38 +2023,38 @@ class VoIPms{
         $function = "setSubAccount";
         $params = array(
             "params" => array(
-                "api_username"          => $this->api_username,
-                "api_password"          => $this->api_password,
-                "id"                    => $id,
-                "description"           => $description,
-                "auth_type"             => $auth_type,
-                "password"              => $password,
-                "ip"                    => $ip,
-                "device_type"           => $device_type,
-                "callerid_number"       => $callerid_number,
-                "canada_routing"        => $canada_routing,
-                "lock_international"    => $lock_international,
-                "international_route"   => $international_route,
-                "music_on_hold"         => $music_on_hold,
-                "allowed_codecs"        => $allowed_codecs,
-                "dtmf_mode"             => $dtmf_mode,
-                "nat"                   => $nat,
-                "sip_traffic"           => $sip_traffic,
-                "max_expiry"            => $max_expiry,
-                "rtp_timeout"           => $rtp_timeout,
-                "rtp_hold_timeout"      => $rtp_hold_timeout,
+                "api_username"              => $this->api_username,
+                "api_password"              => $this->api_password,
+                "id"                        => $id,
+                "description"               => $description,
+                "auth_type"                 => $auth_type,
+                "password"                  => $password,
+                "ip"                        => $ip,
+                "device_type"               => $device_type,
+                "callerid_number"           => $callerid_number,
+                "canada_routing"            => $canada_routing,
+                "lock_international"        => $lock_international,
+                "international_route"       => $international_route,
+                "music_on_hold"             => $music_on_hold,
+                "allowed_codecs"            => $allowed_codecs,
+                "dtmf_mode"                 => $dtmf_mode,
+                "nat"                       => $nat,
+                "sip_traffic"               => $sip_traffic,
+                "max_expiry"                => $max_expiry,
+                "rtp_timeout"               => $rtp_timeout,
+                "rtp_hold_timeout"          => $rtp_hold_timeout,
                 "ip_restriction"            => $ip_restriction,
                 "enable_ip_restriction"     => $enable_ip_restriction,
                 "pop_restriction"           => $pop_restriction,
                 "enable_pop_restriction"    => $enable_pop_restriction,
-                "internal_extension"    => $internal_extension,
-                "internal_voicemail"    => $internal_voicemail,
-                "internal_dialtime"     => $internal_dialtime,
-                "reseller_client"       => $reseller_client,
-                "reseller_package"      => $reseller_package,
-                "reseller_nextbilling"  => $reseller_nextbilling,
-                "reseller_chargesetup"  => $reseller_chargesetup,
-                "send_bye"              => $send_bye
+                "internal_extension"        => $internal_extension,
+                "internal_voicemail"        => $internal_voicemail,
+                "internal_dialtime"         => $internal_dialtime,
+                "reseller_client"           => $reseller_client,
+                "reseller_package"          => $reseller_package,
+                "reseller_nextbilling"      => $reseller_nextbilling,
+                "reseller_chargesetup"      => $reseller_chargesetup,
+                "send_bye"                  => $send_bye
             )
         );
         return $this->soapCall($function,$params);
@@ -2462,7 +2086,7 @@ class VoIPms{
 
     function setVoicemail(
         $mailbox, $name, $password, $skip_password, $email, $attach_message, $delete_message,
-        $say_time, $timezone, $say_callerid, $play_instructions, $language, $email_attachment_format="", $unavailable_message_recording=""
+        $say_time, $timezone, $say_callerid, $play_instructions, $language, $email_attachment_format=""
     ){
         $function = "setVoicemail";
         $params = array(
@@ -2481,8 +2105,7 @@ class VoIPms{
                 "say_callerid"      => $say_callerid,
                 "play_instructions" => $play_instructions,
                 "language"          => $language,
-                "email_attachment_format" =>$email_attachment_format,
-                "unavailable_message_recording"=>$unavailable_message_recording
+                "email_attachment_format" =>$email_attachment_format
             )
         );
         return $this->soapCall($function,$params);
@@ -3167,6 +2790,243 @@ class VoIPms{
         return $this->soapCall($function,$params);
     }
 
+
+     function addMemberToConference($member,$conference)
+    {
+        $function = "addMemberToConference";
+        $params = array(
+            "params" => array(
+            "api_username"  => $this->api_username,
+            "api_password"  => $this->api_password,
+            "member"           => $member,
+            "conference"           => $conference
+            )
+        );
+
+        return $this->soapCall($function,$params);
+    }
+
+
+    function delCallHunting($callhunting)
+    {
+         $function = "delCallHunting";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "callhunting"   => $callhunting
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+    function delConference($conference)
+    {
+         $function = "delConference";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "conference"   => $conference
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+    function delConferenceMember($member)
+    {
+         $function = "delConferenceMember";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "member"   => $member
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+    /*this is duplicated and incomplete*/
+    function delMemberFromConference($conference,$member)
+    {
+         $function = "delMemberFromConference";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "conference"   => $conference,
+                    "member"   => $member
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+    function getCallHuntings($callhunting='')
+    {
+         $function = "getCallHuntings";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "callhunting"   => $callhunting
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+
+    function getConference($conference='')
+    {
+        $function = "getConference";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "conference"           => $conference
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+
+    function getConferenceMembers($member)
+    {
+        $function = "getConferenceMembers";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "member"           => $member
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function getConferenceRecordings($conference)
+    {
+        $function = "getConferenceRecordings";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "conference"           => $conference
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function getConferenceRecordingFile($conference,$recording)
+    {
+        $function = "getConferenceRecordingFile";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "conference"           => $conference,
+                "recording"           => $recording
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function getVoicemailFolders($folder='')
+    {
+        $function = "getVoicemailFolders";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "folder"           => $folder
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function getVoicemailMessageFile($mailbox,$folder,$message_num,$format)
+    {
+        $function = "getVoicemailMessageFile";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "mailbox"       => $mailbox,
+                "folder"        => $folder,
+                "message_num"   => $message_num,
+                "format"        => $format
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function getVoicemailMessages($mailbox,$folder,$date_from,$date_to)
+    {
+        $function = "getVoicemailMessages";
+        $params = array(
+            "params" => array(
+                "api_username"  => $this->api_username,
+                "api_password"  => $this->api_password,
+                "mailbox"       => $mailbox,
+                "folder"        => $folder,
+                "date_from"     => $date_from,
+                "date_to"       => $date_to
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function markListenedVoicemailMessage($mailbox,$folder,$message_num,$listened)
+    {
+         $function = "markListenedVoicemailMessage";
+            $params = array(
+                "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "mailbox"       => $mailbox,
+                    "folder"        => $folder,
+                    "message_num"     => $message_num,
+                    "listened"       => $listened
+                )
+            );
+            return $this->soapCall($function,$params);
+    }
+
+    function markUrgentVoicemailMessage($mailbox,$folder,$message_num,$urgent)
+    {
+         $function = "markUrgentVoicemailMessage";
+            $params = array(
+                "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "mailbox"       => $mailbox,
+                    "folder"        => $folder,
+                    "message_num"   => $message_num,
+                    "urgent"        => $urgent
+                )
+            );
+            return $this->soapCall($function,$params);
+    }
+
+    function moveFolderVoicemailMessage($mailbox,$folder,$message_num,$new_folder)
+    {
+         $function = "moveFolderVoicemailMessage";
+            $params = array(
+                "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "mailbox"       => $mailbox,
+                    "folder"        => $folder,
+                    "message_num"   => $message_num,
+                    "new_folder"        => $new_folder
+                )
+            );
+            return $this->soapCall($function,$params);
+    }
+
     function orderDIDInternationalTollFree($location_id,$quantity,$routing,$pop,$dialtime,$cnam,$failover_busy,$failover_unreachable,$failover_noanswer,$voicemail,$callerid_prefix,$note,$account,$monthly,$setup,$minute,$test)
     {
         $function = "orderDIDInternationalTollFree";
@@ -3191,6 +3051,112 @@ class VoIPms{
                 "setup"                => $setup,
                 "minute"               => $minute,
                 "test"                 => $test
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function sendVoicemailEmail($mailbox,$folder,$message_num,$email_address)
+    {
+          $function = "sendVoicemailEmail";
+            $params = array(
+                "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "mailbox"       => $mailbox,
+                    "folder"        => $folder,
+                    "message_num"   => $message_num,
+                    "email_address" => $email_address
+                )
+            );
+            return $this->soapCall($function,$params);
+    }
+
+    function setCallHunting($callhunting,$description,$music,$recording,$language,$order,$members,$ring_time,$press)
+    {
+          $function = "setCallHunting";
+                $params = array(
+                    "params" => array(
+                    "api_username"  => $this->api_username,
+                    "api_password"  => $this->api_password,
+                    "callhunting"   => $callhunting,
+                    "description"   => $description,
+                    "music"   => $music,
+                    "recording"   => $recording,
+                    "language"   => $language,
+                    "order"   => $order,
+                    "members"   => $members,
+                    "ring_time"   => $ring_time,
+                    "press"   => $press
+                    )
+                );
+
+                return $this->soapCall($function,$params);
+    }
+
+    function setConference($conference,$name,$description,$max_members='0',$members='',$sound_join='0',$sound_leave='0',$sound_has_joined='0',$sound_has_left='0',$sound_kicked='0',$sound_muted='0',$sound_unmuted='0',$sound_only_person='0',$sound_only_one='0',$sound_there_are='0',$sound_participants_muted='0',$sound_other_in_party='0',$sound_place_into_conference='0',$sound_get_pin='0',$sound_invalid_pin='0',$sound_locked='0',$sound_locked_now='0',$sound_unlocked_now='0',$sound_error_menu='0',$sound_participants_unmuted='0',$col_language='en')
+    {
+        $function = "setConference";
+        $params = array(
+            "params" => array(
+                "api_username"                => $this->api_username,
+                "api_password"                => $this->api_password,
+                "conference"                  => $conference,
+                "name"                        => $name,
+                "description"                 => $description,
+                "max_members"                 => $max_members,
+                "members"                     => $members,
+                "sound_join"                  => $sound_join,
+                "sound_leave"                 => $sound_leave,
+                "sound_has_joined"            => $sound_has_joined,
+                "sound_has_left"              => $sound_has_left,
+                "sound_kicked"                => $sound_kicked,
+                "sound_muted"                 => $sound_muted,
+                "sound_unmuted"               => $sound_unmuted,
+                "sound_only_person"           => $sound_only_person,
+                "sound_only_one"              => $sound_only_one,
+                "sound_there_are"             => $sound_there_are,
+                "sound_participants_muted"    => $sound_participants_muted,
+                "sound_other_in_party"        => $sound_other_in_party,
+                "sound_place_into_conference" => $sound_place_into_conference,
+                "sound_get_pin"               => $sound_get_pin,
+                "sound_invalid_pin"           => $sound_invalid_pin,
+                "sound_locked"                => $sound_locked,
+                "sound_locked_now"            => $sound_locked_now,
+                "sound_unlocked_now" => $sound_unlocked_now,
+                "sound_error_menu" => $sound_error_menu,
+                "sound_participants_unmuted" => $sound_participants_unmuted,
+                "col_language" => $col_language
+            )
+        );
+        return $this->soapCall($function,$params);
+    }
+
+    function setConferenceMember($conference,$member,$name,$description='',$pin='',$announce_join_leave='no',$admin='no',$start_muted='no',$announce_user_count='no',$announce_only_user='yes',$moh_when_empty='default',$quiet='no',$announcement='0',$drop_silence='yes',$talking_threshold='160',$silence_threshold='2500',$talk_detection='yes',$jitter_buffer='yes')
+    {
+        $function = "setConferenceMember";
+        $params = array(
+            "params" => array(
+                "api_username"        => $this->api_username,
+                "api_password"        => $this->api_password,
+                "conference"          => $conference,
+                "member"              => $member,
+                "name"                => $name,
+                "description"         => $description,
+                "pin"                 => $pin,
+                "announce_join_leave" => $announce_join_leave,
+                "admin"               => $admin,
+                "start_muted"         => $start_muted,
+                "announce_user_count" => $announce_user_count,
+                "announce_only_user"  => $announce_only_user,
+                "moh_when_empty"      => $moh_when_empty,
+                "quiet"               => $quiet,
+                "announcement"        => $announcement,
+                "drop_silence"        => $drop_silence,
+                "talking_threshold"   => $talking_threshold,
+                "silence_threshold"   => $silence_threshold,
+                "talk_detection"      => $talk_detection,
+                "jitter_buffer"       => $jitter_buffer
             )
         );
         return $this->soapCall($function,$params);
